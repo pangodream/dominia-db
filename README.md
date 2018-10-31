@@ -1,2 +1,2 @@
 # dominia-db
-Database population with spanish domain registers
+Database feeding with spanish domain registers
