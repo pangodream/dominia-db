@@ -6,8 +6,10 @@
  */
 
 namespace DominiaDb;
+use Dominia\DocParser;
 use PhpSimpcli\CliParser;
 use Dotenv\Dotenv;
+use Dominia\Crawler;
 
 class App
 {
@@ -16,10 +18,27 @@ class App
      */
     private $db = null;
     /**
+     * @var Dominia\Crawler
+     */
+    private $crawler = null;
+    /**
+     * @var Dominia\DocParser
+     */
+    private $parser = null;
+
+    /**
      * App constructor.
      */
     public function __construct(){
         $this->loadConfiguration();
+
+        $this->dbConnect();
+
+        $this->crawler = new Crawler();
+        $this->crawler->setDocsHome($_ENV['DOCS_HOME']);
+
+        $this->parser = new DocParser();
+
         $this->evalInvokingOptions();
     }
 
@@ -37,8 +56,28 @@ class App
         if($cp->get('createtables')->found){
             $this->createTables($cp->get('createtables')->value);
         }
+        if($cp->get('getpdfs')->found){
+            $this->getPdfs();
+        }
+        if($cp->get('processall')->found){
+            $this->processAll();
+        }
     }
 
+    /**
+     * Downloads the pdf documents that are not locally stored (new or missing)
+     */
+    private function getPdfs(){
+        $downloaded = $this->crawler->extract();
+        echo "Downloaded ".$downloaded." new pdf files to local store.\n";
+    }
+    private function processAll(){
+        $docs = $this->crawler->listLocalFiles();
+        foreach($docs as $doc) {
+            $hash = substr($doc['fileName'], 0, 32);
+            var_dump($this->db->existsFeed($hash));die();
+        }
+    }
     /**
      * Initializes database tables
      * When $force contains the value 'force' it drops tables when exist

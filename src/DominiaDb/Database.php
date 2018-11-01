@@ -10,8 +10,24 @@ use DominiaDb\DDL;
 
 class Database
 {
+    /**
+     * @var \PDO
+     */
     private $dbh = null;
 
+    /**
+     * Checks if a feed exists by the hash of the pdf file
+     * @param $hash
+     */
+    public function existsFeed($hash){
+        $exists = false;
+        $sql = "select count(*) as cnt from dmn_feed where hash = :hash";
+        $result = $this->execAndFetchAll($sql, array('hash'=>$hash));
+        if($result[0]['cnt'] > 0){
+            $exists = true;
+        }
+        return $exists;
+    }
     /**
      * Connects to database
      * Returns true if succeed, otherwise false
