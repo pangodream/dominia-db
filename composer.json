@@ -2,6 +2,12 @@
   "minimum-stability":"dev",
   "require": {
     "pangodream/dominia": "*",
-    "vlucas/phpdotenv": "^2.5@dev"
+    "vlucas/phpdotenv": "^2.5@dev",
+    "pangodream/php-simpcli": "dev-master"
+  },
+  "autoload":{
+    "psr-0":{
+      "DominiaDb": "src/"
+    }
   }
 }
