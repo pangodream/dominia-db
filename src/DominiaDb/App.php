@@ -12,6 +12,10 @@ use Dotenv\Dotenv;
 class App
 {
     /**
+     * @var \DominiaDb\Database;
+     */
+    private $db = null;
+    /**
      * App constructor.
      */
     public function __construct(){
@@ -30,26 +34,60 @@ class App
         if($cp->get('testdb')->found){
             $this->testDB();
         }
+        if($cp->get('createtables')->found){
+            $this->createTables($cp->get('createtables')->value);
+        }
     }
 
     /**
-     * Tests database connection using current configuration
+     * Initializes database tables
+     * When $force contains the value 'force' it drops tables when exist
+     * @param $force
      */
-    private function testDB(){
-        $db = new Database();
-        $ret = $db->connect($_ENV['DB_HOST'],
-                            $_ENV['DB_PORT'],
-                            $_ENV['DB_SCHEMA'],
-                            $_ENV['DB_USER'],
-                            $_ENV['DB_PASSWORD']);
-        if($ret){
-            echo "Database connection succeed.\n";
+    private function createTables($force){
+        if($this->dbConnect()){
+            if($this->db->existTables($_ENV['DB_SCHEMA']) && $force != 'force'){
+                echo "The database schema is not empty.\n"
+                      ."You can override tables information specifying the 'force' modifier after 'createtables' option (-createtables force)\n";
+            }else{
+                $this->db->createTables($_ENV['DB_SCHEMA']);
+                echo "Tables created succesfully.\n";
+            }
         }else{
             echo "Unable to connect to database. Review .env configuration options.\n";
         }
     }
     /**
-     * Loads configuration option from .env file
+     * Tests database connection using current configuration
+     */
+    private function testDB(){
+        echo "Testing database connection...\n";
+        if($this->dbConnect()){
+            echo "Database connection succeed.\n";
+        }else{
+            echo "Unable to connect to database. Review .env configuration options.\n";
+        }
+    }
+
+    /**
+     *  Connects to database
+     * @return bool
+     */
+    private function dbConnect(){
+        if($this->db == null) {
+            $this->db = new Database();
+            $ret = $this->db->connect($_ENV['DB_HOST'],
+                $_ENV['DB_PORT'],
+                $_ENV['DB_SCHEMA'],
+                $_ENV['DB_USER'],
+                $_ENV['DB_PASSWORD']);
+        }else {
+            $ret = true;
+        }
+        return $ret;
+    }
+    /**
+     * Loads configuration options from .env file
      */
     private function loadConfiguration(){
         //Check if configuration file exists
