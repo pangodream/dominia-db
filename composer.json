@@ -1,6 +1,7 @@
 {
   "minimum-stability":"dev",
   "require": {
-    "pangodream/dominia": "*"
+    "pangodream/dominia": "*",
+    "vlucas/phpdotenv": "^2.5@dev"
   }
 }
