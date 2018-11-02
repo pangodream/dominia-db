@@ -76,7 +76,7 @@ class App
         echo "php dmndb.php [options][arguments]\n";
         echo "\n";
         echo "Options:\n";
-        echo "  -showconfig            Shows current conifguration\n";
+        echo "  -showconfig            Shows current configuration\n";
         echo "  -testdb                Tests database connection using current configuration\n";
         echo "  -createtables [force]  Creates database tables. If they already exist, override them with force argument\n";
         echo "  -getpdfs               Download new pdfs from www.dominios.es\n";
