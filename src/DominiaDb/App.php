@@ -31,6 +31,7 @@ class App
      */
     public function __construct(){
         $this->loadConfiguration();
+        ini_set('memory_limit',$_ENV['MEMORY_LIMIT']);
 
         $this->dbConnect();
 
@@ -62,8 +63,27 @@ class App
         if($cp->get('processall')->found){
             $this->processAll();
         }
+        if($cp->get('h')->found || $cp->get('help')->found){
+            $this->showHelp();
+        }
     }
 
+    /**
+     * Shows help
+     */
+    private function showHelp(){
+        echo "\n";
+        echo "php dmndb.php [options][arguments]\n";
+        echo "\n";
+        echo "Options:\n";
+        echo "  -showconfig            Shows current conifguration\n";
+        echo "  -testdb                Tests database connection using current configuration\n";
+        echo "  -createtables [force]  Creates database tables. If they already exist, override them with force argument\n";
+        echo "  -getpdfs               Download new pdfs from www.dominios.es\n";
+        echo "  -processall            Parse all pending files and dump records to database\n";
+        echo "  -h | -help             Show this help\n";
+        echo "\n";
+    }
     /**
      * Downloads the pdf documents that are not locally stored (new or missing)
      */
@@ -71,12 +91,62 @@ class App
         $downloaded = $this->crawler->extract();
         echo "Downloaded ".$downloaded." new pdf files to local store.\n";
     }
+
+    /**
+     * Parse and dump all stored pdf files
+     */
     private function processAll(){
         $docs = $this->crawler->listLocalFiles();
         foreach($docs as $doc) {
-            $hash = substr($doc['fileName'], 0, 32);
-            var_dump($this->db->existsFeed($hash));die();
+            $ret = $this->processFile($doc);
+            //Pdf parser may exhaust memory when invoked repeated times
+            gc_collect_cycles();
         }
+    }
+
+    /**
+     * Parse and dump an specific document
+     * Skips if the feed has been done before (marked as processed)
+     * @param $doc
+     * @throws \Exception
+     */
+    private function processFile($doc){
+        $hash = substr($doc['fileName'], 0, 32);
+        echo "Processing file ".$doc['fileName']."...\n";
+        $feedId = $this->db->getFeedIdByHash($hash);
+        if(!$this->db->isFeedProcessed($feedId)){
+            $this->db->deleteFeedRecords($feedId);
+            echo "   Parsing pdf...\n";
+            $records = $this->parser->pdfToArray($doc['path'].'/'.$doc['fileName']);
+            $cnt = 0;
+            $block = array();
+            echo "   Dumping blocks";
+            foreach($records as $record){
+                $cnt++;
+                if($this->isValidDate($record['registerDate'])) {
+                    $block[] = $record;
+                    if (($cnt % 1000) == 0 || $cnt == sizeof($records)) {
+                        echo ".";
+                        $this->db->dumpRecords($block, $feedId);
+                        $block = array();
+                    }
+                }
+            }
+            $this->db->markFeedAsProcessed($feedId);
+            echo "\n";
+            echo "   File processed. ".sizeof($records)." records.\n";
+        }else{
+            echo "   File skipped (already processed).\n";
+        }
+    }
+
+    /**
+     * Validates the date to avoid db errors
+     * @param $date
+     * @return bool
+     */
+    private function isValidDate($date){
+        return checkdate((int)substr($date, 5, 2), (int)substr($date, 8, 2), (int)substr($date, 0, 4));
     }
     /**
      * Initializes database tables
