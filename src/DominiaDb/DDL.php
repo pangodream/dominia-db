@@ -10,7 +10,7 @@ namespace DominiaDb;
 
 class DDL
 {
-    public function getRecordDDL(){
+    public function getFeedDDL(){
         $sql='
                 DROP TABLE IF EXISTS `dmn_feed`;
                 CREATE TABLE IF NOT EXISTS `dmn_feed` (
@@ -21,7 +21,7 @@ class DDL
         ';
         return $sql;
     }
-    public function getFeedDDL(){
+    public function getRecordDDL(){
         $sql='
                 DROP TABLE IF EXISTS `dmn_record`;
                 CREATE TABLE IF NOT EXISTS `dmn_record` (
@@ -29,7 +29,7 @@ class DDL
                   `reg_date` date NOT NULL,
                   `feed_id` int(11) NOT NULL,
                 PRIMARY KEY (`reg_date`,`domain_name`, `feed_id`),
-                KEY `idx_record_domain` (`domain_name`),
+                FULLTEXT INDEX `idx_record_domain` (`domain_name`),
                 KEY `idx_record_reg_date` (`reg_date`),
                 KEY `idx_record_feed_id` (`feed_id`)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

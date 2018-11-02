@@ -162,7 +162,14 @@ class Database
         }
         return $exist;
     }
-
+    public function disableIndexes($tableName){
+        $sql = "ALTER TABLE `$tableName` DISABLE KEYS";
+        $this->exec($sql);
+    }
+    public function enableIndexes($tableName){
+        $sql = "ALTER TABLE `$tableName` ENABLE KEYS";
+        $this->exec($sql);
+    }
     /**
      * Executes a non select sql sentence
      * @param $sql

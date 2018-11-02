@@ -96,12 +96,17 @@ class App
      * Parse and dump all stored pdf files
      */
     private function processAll(){
+        echo "Disabling indexes...\n";
+        $this->db->disableIndexes('dmn_record');
         $docs = $this->crawler->listLocalFiles();
         foreach($docs as $doc) {
             $ret = $this->processFile($doc);
             //Pdf parser may exhaust memory when invoked repeated times
             gc_collect_cycles();
         }
+        echo "Enabling indexes...\n";
+        $this->db->enableIndexes('dmn_record');
+        echo "Finished!\n";
     }
 
     /**
@@ -125,7 +130,7 @@ class App
                 $cnt++;
                 if($this->isValidDate($record['registerDate'])) {
                     $block[] = $record;
-                    if (($cnt % 1000) == 0 || $cnt == sizeof($records)) {
+                    if (($cnt % $_ENV['BLOCK_SIZE']) == 0 || $cnt == sizeof($records)) {
                         echo ".";
                         $this->db->dumpRecords($block, $feedId);
                         $block = array();
@@ -216,6 +221,7 @@ class App
     private function showConfig(){
         echo "Global\n";
         echo "    Show Credentials:   ".$_ENV['SHOW_CREDENTIALS']."\n";
+        echo "    Memory limit:       ".$_ENV['MEMORY_LIMIT']."\n";
         echo "Database configuration\n";
         echo "    Host:               ".$_ENV['DB_HOST']."\n";
         echo "    Port:               ".$_ENV['DB_PORT']."\n";
@@ -227,6 +233,7 @@ class App
             echo "    User:               xxxxxxxx\n";
             echo "    Password:           xxxxxxxx\n";
         }
+        echo "    Block Size:         ".$_ENV['BLOCK_SIZE']."\n";
         echo "Files configuration\n";
         echo "    Docs. Home:         ".$_ENV['DOCS_HOME']."\n";
     }
