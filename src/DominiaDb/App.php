@@ -79,9 +79,9 @@ class App
         echo "  -showconfig            Shows current configuration\n";
         echo "  -testdb                Tests database connection using current configuration\n";
         echo "  -createtables [force]  Creates database tables. If they already exist, override them with force argument\n";
-        echo "  -getpdfs               Download new pdfs from www.dominios.es\n";
-        echo "  -processall            Parse all pending files and dump records to database\n";
-        echo "  -h | -help             Show this help\n";
+        echo "  -getpdfs               Downloads new pdfs from www.dominios.es\n";
+        echo "  -processall            Parses all pending files and dump records to database\n";
+        echo "  -h | -help             Shows this help\n";
         echo "\n";
     }
     /**
